@@ -1,0 +1,108 @@
+<html>  
+<head>
+<title>Song Recommender</title>
+	<link rel="icon" type="image/x-icon" href="http://srivalab.cse.iitk.ac.in/NodeApp/icon/favicon.ico">
+	<link href='https://fonts.googleapis.com/css?family=Bree Serif' rel='stylesheet'>
+</head>
+<body  style="background-color:yellow;">  
+	<style> 
+	body  {
+    background-image: url("http://srivalab.cse.iitk.ac.in/NodeApp/background.jpg");
+    background-color: #cccccc;
+}
+.button {
+    padding: 15px 25px;
+  font-size: 24px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+    position:fixed;
+    bottom:40%;
+    right:48%;
+    font-family: 'Bree Serif';
+    font-weight: bold;
+}
+input[type=text] {
+    width: 40%;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    background-repeat: no-repeat;
+    padding: 12px 20px;
+    position:fixed;
+    bottom:58%;
+    right:32%;
+}
+input[type=text]:focus {
+    border: 3px solid #555;
+}
+</style>
+<style>
+p.a{
+     font-family: 'Bree Serif';
+     font-weight: bold;
+    color: white;
+    position: fixed;
+    bottom: 70%;
+    right: 40%;
+    font-size: 2.5em;
+}
+</style>
+<button onclick="listen()">Record</button>
+<form action="http://srivalab.cse.iitk.ac.in:8086/show" method="GET">
+<div>
+    <input type="hidden" name="language" id="language" value="">
+  </div>
+
+  <p class="a">Enter Song Name</p>
+   <input id= "song" type="text" name="song_name" placeholder="Song.." x-webkit-speech/>  <br/>  <br>
+   <!--<input type="submit" value="Visualise" />-->
+   
+   <input type="submit" class="button" value="Visualise">
+</form>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+</body>  
+
+<script src="http://srivalab.cse.iitk.ac.in/NodeApp/bower_components/platform/platform.js"></script>
+<script src="http://srivalab.cse.iitk.ac.in/NodeApp/bower_components/webspeech/src/webspeech.js"></script>
+<script type="text/javascript">
+	function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        //alert(hash)
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+
+}
+var lang=getUrlVars()['language']
+document.getElementById("language").value=lang
+  function listen(){
+  var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+recognition.lang = 'en-US';
+recognition.interimResults = false;
+recognition.maxAlternatives = 10;
+recognition.start();
+
+recognition.onresult = function(event) {
+    console.log('You said: ', event.results[0][0].transcript);
+    text=event.results[0][0].transcript
+    document.getElementById("song").value = text
+}
+};
+</script>
+</html>  

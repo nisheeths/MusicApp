@@ -1,0 +1,81 @@
+<html>  
+<head>
+<title>Song Recommender</title>
+	<link rel="icon" type="image/x-icon" href="http://srivalab.cse.iitk.ac.in/NodeApp/icon/favicon.ico">
+	<link href='https://fonts.googleapis.com/css?family=Bree Serif' rel='stylesheet'>
+</head>
+<style> 
+body  {
+    background-image: url("http://srivalab.cse.iitk.ac.in/NodeApp/background.jpg");
+    background-color: #cccccc;
+}
+div{
+	width: 100px;
+    height: 100px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+label{
+    font-family: 'Bree Serif';
+    font-weight: bold;
+    color: white;
+    position: fixed;
+    bottom: 80%;
+    right: 31%;
+    width: 400px;
+    font-variant: bold;
+    font-size: 2.5em;
+}
+select {
+    width: 30%;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 4px;
+    position:fixed;
+    bottom:58%;
+    right:37%;
+    background-color: #f1f1f1;
+}
+.button {
+    padding: 15px 25px;
+  font-size: 24px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+    position:fixed;
+    bottom:40%;
+    right:48%;
+    font-weight: bold;
+    font-family: 'Bree Serif';
+    color: white;
+
+}
+</style>
+<body >  
+<form action="http://srivalab.cse.iitk.ac.in:8086/search" method="GET">  
+	<div>
+		<label for="Language">Select Language</label>
+    <select id="language" name="language">
+      <option value="hindi">Hindi</option>
+      <option value="bengali">Bengali</option>
+    </select>
+    <br>
+    <input type="submit" class="button" value="Submit">
+</div>
+</form>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.1/d3.min.js"></script>
+</body>  
+
+
+</html>  

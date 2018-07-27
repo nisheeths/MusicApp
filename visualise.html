@@ -1,0 +1,213 @@
+<html>  
+  <head>  
+    <title>Songs Show</title>  
+<link rel="icon" type="image/x-icon" href="F:/M.Tech_Project/NodeApp/favicon.ico">
+  </head>  
+  <body  style="background-color: lightblue";>  
+      <h1>Queried Song</h1>  
+      <p id="p1">Gaan</p>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>  
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>  
+  <script src="http://d3js.org/d3.v3.min.js"></script> 
+  <script src="F:/M.Tech_Project/NodeApp/vanilla.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>  
+  
+  var song ;
+  var socket=io();
+  function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        //alert(hash)
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+
+}
+
+var nodes;
+socket.on('chat message', function(msg){
+      
+      song=msg.name;
+    
+song = getUrlVars()['song_name'];
+song=song.split('+').join(' ')
+document.getElementById("p1").innerHTML=song;
+
+nodes = [
+                {"name":"hello", x:20,y:30},
+                {"name":"hi", x:-200, y:0},
+                {"name":"hello", x:20,y:30},
+                {"name":"hello", x:40,y:10}
+                    
+  ]
+  nodes[0]={"name":""+song, x:50, y:50}
+});
+  //alert(nodes[0])
+  </script>  
+  <h1>Similarity Graph</h1>
+  <script type="text/javascript">
+var w = 500,
+    h = 500;
+
+var circleWidth = 10;
+
+var fontFamily = 'Bree Serif',
+    fontSizeHighlight = '2em',
+    fontSizeNormal = '1em';
+
+var palette = {
+      "lightgray": "#819090",
+      "gray": "#708284",
+      "mediumgray": "#536870",
+      "darkgray": "#475B62",
+
+      "darkblue": "#0A2933",
+      "darkerblue": "#042029",
+
+      "paleryellow": "#FCF4DC",
+      "paleyellow": "#EAE3CB",
+      "yellow": "#A57706",
+      "orange": "#BD3613",
+      "red": "#D11C24",
+      "pink": "#C61C6F",
+      "purple": "#595AB7",
+      "blue": "#2176C7",
+      "green": "#259286",
+      "yellowgreen": "#738A05"
+  }
+  var len=20;
+    var reader; //GLOBAL File Reader object for demo purpose only
+   var songs = [];
+   
+var links = [
+                
+]
+              
+
+
+var vis = d3.select("body")
+    .append("svg:svg")
+      .attr("class", "stage")
+      .attr("width", w)
+      .attr("height", h)
+      .style('fill', 'darkOrange')//;"border", "1px solid black");
+      
+
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links([])
+    .gravity(0.1)
+    .charge(-1000)
+    .size([w, h]);
+
+ var link = vis.selectAll(".link")
+        .data(links)
+        .enter().append("line")
+          .attr("class", "link")
+          .attr("stroke", "green")
+          .attr("fill", "none");
+
+ var node = vis.selectAll("circle.node")
+      .data(nodes)
+      .enter().append("g")
+      .attr("class", "node")
+
+      //MOUSEOVER
+      .on("mouseover", function(d,i) {
+        if (i>=0) {
+          //CIRCLE
+          d3.select(this).selectAll("circle")
+          .transition()
+          .duration(250)
+          .style("cursor", "none")     
+          .attr("r", circleWidth+3)
+          .attr("fill",palette.orange);
+
+          //TEXT
+          d3.select(this).select("text")
+          .transition()
+          .style("cursor", "none")     
+          .duration(250)
+          .style("cursor", "none")     
+          .attr("font-size","1.5em")
+          .attr("x",function(d){return d.x-300})
+          .attr("y",function(d){return d.y-70} )
+          .style('fill', 'darkOrange')
+        } else {
+          //CIRCLE
+          d3.select(this).selectAll("circle")
+          .style("cursor", "none")     
+
+          //TEXT
+          d3.select(this).select("text")
+          .style("cursor", "none")     
+        }
+      })
+
+      //MOUSEOUT
+      .on("mouseout", function(d,i) {
+        if (i>=0) {
+          //CIRCLE
+          d3.select(this).selectAll("circle")
+          .transition()
+          .duration(250)
+          .attr("r", circleWidth)
+          .attr("fill",function(d, i) { if (i>=1) { return  palette.pink; } else { return palette.green } } );
+
+          //TEXT
+          d3.select(this).select("text")
+          .transition()
+          .duration(250)
+          .attr("font-size","1em")
+          .attr("x", function(d){return d.x-300})
+          .attr("y", function(d){return d.y-10} )
+          .style('fill', 'yellow')
+        }
+      })
+
+      .call(force.drag);
+
+
+    //CIRCLE
+    node.append("svg:circle")
+      //.append("a")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("r", circleWidth)
+      //.attr("xlink:href", "http://en.wikipedia.org/")
+      .attr("fill", function(d, i) { if (i>=1) { return  palette.pink; } else { return palette.green } } )
+
+    //TEXT
+    node.append("text")
+      .text(function(d, i) { return d.name; })
+      .attr("x",    function(d, i) { return d.x; })
+      .attr("y",            function(d, i) { return d.y } )
+      .attr("font-family",  "Bree Serif")
+      .attr("fill",         function(d, i) {  return  palette.paleryellow;  })
+      .attr("font-size",    function(d, i) {  return  "1em"; })
+      .attr("text-anchor",  function(d, i) { if (i>0) { return  "beginning"; }      else { return "end" } })
+
+
+
+force.on("tick", function(e) {
+  node.attr("transform", function(d, i) {     
+        return "translate(" + d.x + "," + d.y + ")"; 
+    });
+    
+   link.attr("x1", function(d)   { return d.source.x; })
+       .attr("y1", function(d)   { return d.source.y; })
+       .attr("x2", function(d)   { return d.target.x; })
+       .attr("y2", function(d)   { return d.target.y; })
+});
+force.start();                                         
+ </script>
+
+</html>
