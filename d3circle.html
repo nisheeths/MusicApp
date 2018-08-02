@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>  
+    <title>Songs Show</title>  
+<link rel="icon" type="image/x-icon" href="http://srivalab.cse.iitk.ac.in/NodeApp/icon/favicon.ico">
+<link href='https://fonts.googleapis.com/css?family=Bree Serif' rel='stylesheet'>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  </head> 
+  <style type="text/css">
+  	body  {
+    background-image: url("http://srivalab.cse.iitk.ac.in/NodeApp/background3.jpg");
+    background-color: #cccccc;
+    background-repeat: no-repeat;
+    /*background-size: 100% 100%;*/
+    height: 100%;
+}
+.sidenav {
+    height: 100%;
+    width: 180px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+.sidenav p {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 15px;
+    color: #818181;
+    display: block;
+}
+.sidenav h4{
+	color: white;
+	margin-left: 18px;
+	 font-family: 'Bree Serif';
+	 font-weight: bold;
+}
+
+.main {
+    margin-left: 200px; /* Same as the width of the sidenav */
+     /* Increased text to enable scrolling */
+    padding: 0px 0px;
+    font-family: 'Bree Serif';
+    font-weight: bold;
+
+}
+/*.main p,pre,h1{
+		font-family: Arial, Helvetica, sans-serif;
+		color: black;
+		text-transform: capitalize; 
+		display:inline;
+			}*/
+      svg {
+    display: block;
+    margin-left: 0px
+}
+.inner1{
+	display:inline;
+	text-align: left;
+	font-weight: bold;
+	 font-family: 'Bree Serif';
+	float: left;
+	text-transform: capitalize; 
+  color: white;
+}
+.inner2{
+	display: inline;
+	 font-family: 'Bree Serif';
+	text-align: left;
+	float: right;
+	font-weight: bold;
+	margin-right: 20px;
+	text-transform: capitalize; 
+  color:white;
+}
+#p1, #p2{
+	font-size: 25px;
+}
+audio { 
+   display:none;
+}
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+  </style> 
+  <div class="sidenav">
+  	<h4>INSTRUCTIONS</h4>
+  <p>The closer two names are, the more melodically similar the songs are.</p>
+  <p>Right click on the circles to play the corresponding songs</p>
+  <p>Single click on the circles to recentre along the corresponding song</p>
+  <p>The circle appearing green is the song currently playing</p>
+</div>
+  <body>  
+  	<div class="main">
+  		<div class="inner1" >
+  			 <h1 ><b>Queried Song</b></h1>
+  				<p id="p1"><b>Loading..</b></p>  
+  		</div>
+     <div class="inner2">
+     	<h1 ><b>Currently Playing</b></h1>
+        <p id="p2"><b></b></p>
+     </div>
+      
+      
+     
+
+      
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<!--<audio id="audio" src="http://srivalab.cse.iitk.ac.in/NodeApp/song.mp3" ></audio> -->
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<!-- <script src="d3-tip.js"></script> -->
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<audio id="audio" controls="controls">
+  <source id="audioSource" src=""></source>
+  Your browser does not support the audio format.
+</audio>
+</div>
+<script>
+    //
+    
+    var song ;
+  var socket=io();
+  function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        //alert(hash)
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+
+}
+song = getUrlVars()['song_name'];
+var lang=getUrlVars()['language'];
+var read=true;
+socket.emit('chat message', {name:""+song,language:""+lang,read:""+read});
+//song=song.split('+').join(' ')
+read=false;
+var link
+var dist=[]
+var length=10;
+var x,y;
+var theta=Math.random()*360*(22/7)/180;
+var data=[];
+var increase=((360)/18)*(22/7)/180;
+var a=""
+var c=0
+socket.on('chat message',function(msg){
+var audio = document.getElementById('audio');
+
+
+    if(msg.status!="not found")
+    {
+      song=msg.name
+      song=song.replace(/[_-]/g, " ");
+      var row=msg.content.split(",")
+      document.getElementById("p1").innerHTML=song;
+    var songnames=msg.songs.split(",");
+    var c=0   
+        
+      console.log(row.length)
+    //console.log(textbyline.length)
+// for(var i=1;i<length;i++)
+// {
+//     dist.push(Math.floor((Math.random() * 100) + 1));
+// }
+data.push({x:1000,y:400, "name":""+msg.name.replace(/[_-]/g, " "),dist:0})
+var numsongs=0
+var max=0
+for(var i=0;i<100;i++)
+{
+    //theta=Math.floor(Math.random() * (44/7)) + 1;
+   if(Number(row[i])>100 && Number(row[i])<400)
+    {
+      if(Number(row[i])>max)
+        max=Number(row[i])
+      numsongs++
+    x1=1000+(Number(row[i])-70)*Math.cos(theta)*2.5
+    y1=400-(Number(row[i])-70)*Math.sin(theta)*2.5
+    data.push({x:x1,y:y1, "name":""+songnames[i].replace(/[_-]/g, " "),dist:Number(row[i])})
+    theta=Math.random()*360*(22/7)/180;
+  }
+   console.log(data[0].x);
+   // console.log(data[i]);
+}
+console.log(numsongs)
+var myAudio = document.getElementById("audio");
+var margin = {top: 10, right: -200, bottom: 0, left: 800};
+
+var width = 2000 - margin.left - margin.right,
+    height = 810 - margin.top - margin.bottom;
+
+d3.selection.prototype.moveToFront = function() {  
+      return this.each(function(){
+        this.parentNode.appendChild(this);
+      });
+    };
+d3.selection.prototype.moveToBack = function() {  
+        return this.each(function() { 
+            var firstChild = this.parentNode.firstChild; 
+            if (firstChild) { 
+                this.parentNode.insertBefore(this, firstChild); 
+            } 
+        });
+    };
+
+// var zoom = d3.zoom()
+//       .scaleExtent([1/2, 8])
+//       .on("zoom", zoomhandler);
+var svg = d3.select("body")
+    .attr("align","center")
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", height )
+    .append("g")
+    .attr("id","zoomgroup")
+    .call(d3.zoom()
+        .scaleExtent([1, 8])
+        .on("zoom", zoom));
+    //.call(zoom);
+    
+     //var circles=svg.append("g");
+svg.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    
+
+function zoom() {
+  circles.attr("transform", transform(d3.event.transform));
+}
+
+function transform(t) {
+  return function(d) {
+    return "translate(" + t.applyY(d.y) +")";
+  };
+}
+    //.call(zoom);
+//     .call(d3.behaviour.zoom()
+//         .scaleExtent([1 / 2, 4])
+//         .on("zoom", zoomhandler));
+  //   .call(d3.behavior.zoom().on("zoom", function () {
+  //   svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+  // }))
+   //var container = svg.append("g");
+ 
+   //.call(d3.behavior.zoom().on("zoom", zoom));
+  //   svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+  // }))
+  
+  // .call(zoomBeh);
+    //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+var circles=svg.selectAll("circle")
+    .data(data)
+    .enter()
+    .append("svg:circle")
+           
+
+var timer = 0;
+var delay = 400;
+var prevent = false;
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d,i) {
+    //console.log(d.name);
+    return "<strong>Name:</strong> <span style='color:white'>" + d.name + "</span> <br><strong>Number:</strong> <span style='color:white'>" + i + "</span> ";
+
+  })
+svg.call(tip);
+var playing=[]
+for(var i=0;i<100;i++)
+{
+  playing.push(false)
+}
+
+var circleattr=circles
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r",function(d,i){
+        if(i!=c)
+            return 8
+        else
+            return 10
+    })
+    .attr("stroke-width", 2)
+    .attr("stroke", "black")
+    .style("fill",function(d,i){
+        if(i!=c)
+            return "orange"
+        else
+            return "red"
+    })
+    .on("click",function (d,i) {
+        var sname=d.name.split(' ').join('+');
+        location.replace("http://srivalab.cse.iitk.ac.in:8086/show?language="+lang+"&song_name="+sname)
+      })
+    .on("mouseover",function(d,i){
+    	  
+        tip.show(d,i);
+        svg.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .style("fill", "none")
+    .style("pointer-events", "all");
+         d3.select(this).moveToFront();
+        d3.select(this)
+          .transition()
+          .duration(250)
+          .attr("r", 15)
+          .style("cursor", "pointer")
+          .style("fill",function(){
+          if(playing[i]==true)
+            return "black"
+          else
+          {
+            if(i!=c)
+            return "orange"
+          else return "red"
+          }
+    })
+    })
+    .on("mouseout",function(d,i){
+      tip.hide();
+      svg.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .style("fill", "none")
+    .style("pointer-events", "all");
+        d3.select(this).moveToBack();
+        d3.select(this)
+          .transition()
+          .duration(250)
+          .attr("r",function(){
+        if(i!=c)
+            return 8
+        else
+            return 10
+    })
+          .style("fill",function(){
+            if(playing[i]==true)
+              return "black"
+            else 
+            {
+                if(i!=c)
+            return "orange"
+          else return "red"
+            }
+        })
+    })
+    .on("contextmenu", function (d, i) {
+            d3.event.preventDefault();
+            var delayInMilliseconds = 0000; //1 second
+
+setTimeout(function() {
+  //your code to be executed after 1 second
+  var sname=d.name.split(' ').join('_');
+  
+        //alert("Double Click")
+         var audio = document.getElementById('audio');
+  var source = document.getElementById('audioSource');
+  console.log(d.name)
+  //console.log(sname)
+  console.log(source.src)
+  if(source.src!="http://srivalab.cse.iitk.ac.in/NodeApp/Songs/mp3s/"+sname+".mp3")
+     {
+      for(var j=0;j<100;j++)
+      {
+        playing[j]=false;
+      }
+      source.src="http://srivalab.cse.iitk.ac.in/NodeApp/Songs/mp3s/"+sname+".mp3"
+      playing[i]=true;
+      audio.load();
+        audio.play();
+        document.getElementById("p2").innerHTML=d.name;
+    }
+    else
+    {
+      if(audio.paused)
+      {
+        audio.play();
+        document.getElementById("p2").innerHTML=d.name;
+      }
+      else
+        {
+          audio.pause();
+          playing[i]=false;
+          document.getElementById("p2").innerHTML="";
+        }
+    }
+        
+}, delayInMilliseconds);
+        })
+    //.append("svg:title") 
+    //.text(function(d, i) { return ("Song: "+toTitleCase(d.name)+"\n"+"Similarity: "+(1-(d.dist/max))); });
+    // .attr("font-family", "sans-serif")
+    // .attr("font-size", "20px")
+    // .attr("fill", "red");
+function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+function zoomhandler() {
+  //circles.attr("transform", "translate(" + d3.event.translate + ")scale(" +1+ ")");
+  //console.log(d3.event.scale);
+  // var trans=d3.event.translate;
+  // var scale=d3.event.scale;
+  // console.log(trans[0])
+  // circles.attr("transform", function(d){
+  //   //console.log(d.name);
+  //   return "translate("+trans[0]+","+trans[1]+")scale("+scale+")";
+  // });
+  // redrawSvg(false); 
+  //console.log(d3.event.transform)
+  circles.attr("transform", transform2(d3.event.transform));
+}
+function transform2(t) {
+  return function(d) {
+    return "translate(" + t.apply(d) + ")";
+  };
+}
+function togglePlay(name,i) {
+	if(audio.paused)
+	{
+		document.getElementById("p2").innerHTML=name;
+		resetTimer=true;
+    double[i]=true;
+		return audio.play()
+	}
+	if(!audio.paused)
+	{
+		 document.getElementById("p2").innerHTML="";
+		 //resetTimer=false;
+     double[i]=false
+		 return audio.pause();
+
+	}
+  //return audio.paused ? audio.play() : audio.pause();
+};
+}
+else
+{
+  document.getElementById("p1").innerHTML="Song Not Found";
+}
+
+})
+function w3_open() {
+  document.getElementById("main").style.marginLeft = "25%";
+  document.getElementById("mySidebar").style.width = "25%";
+  document.getElementById("mySidebar").style.display = "block";
+  document.getElementById("openNav").style.display = 'none';
+}
+function w3_close() {
+  document.getElementById("main").style.marginLeft = "0%";
+  document.getElementById("mySidebar").style.display = "none";
+  document.getElementById("openNav").style.display = "inline-block";
+}
+// function transform(d) {
+//     return "translate(" + x(d[x]) + "," + y(d[y]) + ")";
+//   }
+</script>
+ 
+</body>
